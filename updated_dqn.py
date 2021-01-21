@@ -29,7 +29,7 @@ class DQNAgent:
         self.epsilon = 0.9
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
-        self.learning_rate= 0.5
+        # self.learning_rate= 0.5
         self.model = self._build_model()
         #self.model = OurModel(input_shape=(self.state_size), action_space = self.action_size)
     
@@ -44,7 +44,8 @@ class DQNAgent:
         model.add(Dense(64, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
 
-        model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
+        # Removed learning rate argument, this means it takes default value which is 0.001 (or 1e-3)
+        model.compile(loss='mse', optimizer=Adam())
         return model
       
     def memorize(self, state, action, reward, next_state, done):
@@ -71,8 +72,9 @@ class DQNAgent:
             target_f = self.model.predict(state)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
-        #if self.epsilon > self.epsilon_min:
-            #self.epsilon *= self.epsilon_decay
+        # Reintroduced exploration decay, without this the agent takes 90% random actions
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
     
     def load (self, name):
         self.model.load_weights(name)
@@ -102,7 +104,8 @@ if __name__ == "__main__":
     done = False
     batch_size = 32
     steps_per_episode = []
-    for episode in range(1001):
+    max_steps = 20
+    for episode in range(80):
         state = env.reset()
         state = np.reshape(state, [1, 9,9])
         done = False
@@ -118,7 +121,9 @@ if __name__ == "__main__":
                 reward = reward
             score += reward
             
-                
+            if i >= max_steps:
+                done = True
+                reward = -1
             next_state = np.reshape(next_state, [1, 9,9])
             agent.memorize(state, action, reward, next_state, done)
             state = next_state
