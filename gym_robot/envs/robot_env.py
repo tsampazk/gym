@@ -19,8 +19,18 @@ class RobotEnv(gym.Env):
     def __init__(self, world_size=(9, 9), obs_mode="image"):
         self.world_size = world_size
         self.obs_mode = obs_mode
-
-        self.world = RobotWorld(size=world_size)
+        MAP: Dict[Tuple[int, int], str] = {
+            (8, 6): 'agent_1', (0, 1): 'building_2', (0, 5): 'bank_2', (0, 8): 'tree_2',
+            (1, 7): 'shop',
+            (2, 0): 'road_closed_2', (2, 3): 'tree_1',
+            (3, 2): 'tree_1', (3, 5): 'road_closed_3', (3, 7): 'pedestrian', (3, 8): 'traffic_lights',
+            (4, 0): 'road_closed_1', (4, 3): 'tree_1',
+            (5, 5): 'building_1', (5, 6): 'building_1', (5, 7): 'building_1',
+            (6, 1): 'bank_1', (6, 5): 'building_1', (6, 6): 'flag', (6, 7): 'building_1',
+            (7, 3): 'traffic_lights', (7, 5): 'building_1', (7, 7): 'building_1',
+            (8, 0): 'tree_2',
+        }
+        self.world = RobotWorld(size=world_size, mapping=MAP)
 
         self.observation_space = gym.spaces.Box(0, 255, shape=(*np.array(world_size) * constants.SIZE_SQUARE, 3))
         if obs_mode == "grid":
